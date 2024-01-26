@@ -70,7 +70,10 @@ def process_tags(
     )
 
     ai_tags = response.choices[0].message.content
-    print(ai_tags + "\n")
+    # print(prompt)
+    # print(ai_tags + "\n")
+    if "Done" in ai_tags:
+        return processedButtons, "Done"
     if ai_tags != "":
         ai_tags_list = ai_tags.split("---")
         final_list = []
@@ -108,7 +111,6 @@ class Clickable:
 
 def check_if_name(tag):
     if tag.getText() != None:
-        print(tag.getText())
         response = client.chat.completions.create(
             model="gpt-3.5-turbo-1106",
             messages=[
@@ -179,7 +181,6 @@ def search_url(root):
         url = next.getUrl()
         
         if url not in processedLinks:
-            print(url)
             browser.get(url)
             processedLinks.add(url)
             time.sleep(timeDelay)
@@ -194,19 +195,29 @@ def search_url(root):
             else:
                 # get a list of relevant tag objects
                 processedButtons, tags = process_tags(
-                    system_message="""Your role as a data collection assistant is to meticulously examine a website for pages that specifically display staff directories and faculty profiles. Upon receiving a list of clickable links—each distinctly separated by '---'—you must discern and select only those links that directly correspond to our objectives: locating staff directories or faculty profiles, or leading to pages that further connect to our goals. As you scrutinize each link, consider the following guidelines to determine relevance: The link text or context should explicitly mention key terms like 'staff', 'faculty', 'directory', 'profiles', 'department', 'instructor', or 'academic team'. Avoid links that direct to external sites or are generic in nature (e.g., 'Home', 'About Us', 'Contact'). Disregard links if they require additional navigation and the relevance is not evident—such as links simply labeled 'More Information' or 'Resources' without specific indications of containing directories or profiles. Preserve the '---' format when listing any qualifying links in your output. If none of the presented links explicitly align with these criteria, it is indeed preferable not to list any rather than include possibly irrelevant options. Your  meticulous attention to these details ensures we focus exclusively on beneficial information and maintain the high standard of our data collection process.""",
-                    prompt_example="HOME---Check---Dr. W. Kimryn Rathmell---LinkedIn---Cancer Prevention Research---Equity & Inclusion---Organization",
-                    assistant_example="Dr. W. Kimryn Rathmell---Organization",
+                    system_message="""Your role as a data collection assistant is to meticulously examine a website for pages that specifically display staff directories with links to faculty profiles. Upon receiving a list of clickable links—each distinctly separated by '---'—you must discern and select only those links that directly correspond to our objectives: locating staff directories or faculty profiles. Preserve the '---' format when listing any qualifying links in your output. Please optimize for directories containing all information. Do not explore subsidiary institutions or centers. If none of the presented links explicitly align with these criteria, it is highly preferable not to list any rather than include possibly irrelevant options. Provide a maximum of two most probable links without additional explanation. If the majority of links refer to individual names, provide all links containing individual names. If all links are irrelevant, simply respond with 'None'""",
+                    prompt_example="HOME---Check---Dr. W. Kimryn Rathmell---LinkedIn---About Us",
+                    assistant_example="Dr. W. Kimryn Rathmell---Organization---About Us",
                     blacklist=blacklist,
                     processedLinks=processedLinks,
                     processedButtons=processedButtons
                 )
+                if tags == 'Done':
+                    break
                 #If this page isn't a dead end, keep the loop going
                 if tags != None:
                     candidates += tags
     return data
 
 if __name__ == "__main__":
-    data = search_url("https://cancer.gov")    
+    # data = search_url("https://www.cancer.gov/")    
+    # df = pd.DataFrame(data)
+    # df.to_csv("data1.csv")
+    data = search_url("https://www.nei.nih.gov/")    
     df = pd.DataFrame(data)
-    df.to_csv("data.csv")
+    df.to_csv("data2.csv")
+    data = search_url("https://www.nhlbi.nih.gov/")    
+    df = pd.DataFrame(data)
+    df.to_csv("data3.csv")
+
+    browser.quit()
