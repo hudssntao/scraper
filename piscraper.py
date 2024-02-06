@@ -4,6 +4,7 @@ import re
 import tqdm
 import webbrowser
 import os
+import tkinter as tk
 
 
 def return_all_links(visited_set, blacklist, html):
@@ -45,8 +46,31 @@ def run_search(searched_word="sequenc"):
 
     return result_list
 
+def handle_enter(event):
+    
+
 
 if __name__ == "__main__":
+    window = tk.Tk()
+    frame = tk.Frame()
+    title = tk.Label(
+        text="NIH Private Investigator Scraper",
+    )
+    
+    button = tk.Button(
+        text="Start",
+        width=25,
+        height=5,
+        bg="black",
+        fg="white",
+    )
+    
+    instructions = tk.Label(
+        text="Enter a keyword to search...",
+    )
+    
+    entry = tk.Entry()
+
     search_term = input("What would you like to search for?: ")
     print("Running search...")
     results = run_search(search_term)
