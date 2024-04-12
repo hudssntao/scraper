@@ -47,7 +47,7 @@ def run_search(searched_word="sequenc"):
     return result_list
 
 def handle_enter(event):
-    
+    print("pass")
 
 
 if __name__ == "__main__":

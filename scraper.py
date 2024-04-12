@@ -195,7 +195,7 @@ def search_url(root):
             else:
                 # get a list of relevant tag objects
                 processedButtons, tags = process_tags(
-                    system_message="""Your role as a data collection assistant is to meticulously examine a website for pages that specifically display staff directories with links to faculty profiles. Upon receiving a list of clickable links—each distinctly separated by '---'—you must discern and select only those links that directly correspond to our objectives: locating staff directories or faculty profiles. Preserve the '---' format when listing any qualifying links in your output. Please optimize for directories containing all information. Do not explore subsidiary institutions or centers. If none of the presented links explicitly align with these criteria, it is highly preferable not to list any rather than include possibly irrelevant options. Provide a maximum of two most probable links without additional explanation. If the majority of links refer to individual names, provide all links containing individual names. If all links are irrelevant, simply respond with 'None'""",
+                    system_message="""Your role as a data collection assistant is to meticulously examine a website for pages that specifically display staff directories with links to faculty profiles. Upon receiving a list of clickable links, each distinctly separated by '---', you must discern and select only those links that directly correspond to your objective. Preserve the '---' format in your output. Please optimize for directories containing all information. Provide a maximum of two most probable links without additional explanation. If the majority of links refer to individual names, provide all links containing individual names. If all links are irrelevant, simply respond with 'None'""",
                     prompt_example="HOME---Check---Dr. W. Kimryn Rathmell---LinkedIn---About Us",
                     assistant_example="Dr. W. Kimryn Rathmell---Organization---About Us",
                     blacklist=blacklist,
@@ -210,14 +210,17 @@ def search_url(root):
     return data
 
 if __name__ == "__main__":
-    # data = search_url("https://www.cancer.gov/")    
+    data = search_url("https://www.cancer.gov/")    
+    df = pd.DataFrame(data)
+    df.to_csv("data1.csv")
+    # data = search_url("https://www.nei.nih.gov/")    
     # df = pd.DataFrame(data)
-    # df.to_csv("data1.csv")
-    data = search_url("https://www.nei.nih.gov/")    
-    df = pd.DataFrame(data)
-    df.to_csv("data2.csv")
-    data = search_url("https://www.nhlbi.nih.gov/")    
-    df = pd.DataFrame(data)
-    df.to_csv("data3.csv")
+    # df.to_csv("data2.csv")
+    # data = search_url("https://www.nhlbi.nih.gov/")    
+    # df = pd.DataFrame(data)
+    # df.to_csv("data3.csv")
 
     browser.quit()
+    
+    
+    #If none of the presented links explicitly align with these criteria, it is highly preferable not to list any rather than include possibly irrelevant options.
