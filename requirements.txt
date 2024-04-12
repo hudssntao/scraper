@@ -3,3 +3,4 @@ selenium
 openai
 bs4
 bio
+dotenv

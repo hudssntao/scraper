@@ -1,13 +1,39 @@
 from Bio import Entrez
 import os
+import json
 import pandas as pd
 from xml.dom import minidom    
 import tqdm
+from dotenv import load_dotenv
+import argparse
 
-Entrez.api_key = os.environ['NCBI_API_KEY']
+load_dotenv()
 
-# Provide your email address to NCBI
-Entrez.email = "hudsontao@gmail.com"
+# 9a8aeb7a1e66472d103a8664c333aff98808
+
+user = {
+    'Email': '',
+}
+
+
+data = {
+        'Name': [],
+        'Email': [],
+        'Address': [],
+        'Keyword': [],
+        'Title': [],
+        'Date': []
+    }
+
+#for papers outside of the U.S.
+non_US = {
+        'Name': [],
+        'Email': [],
+        'Address': [],
+        'Keyword': [],
+        'Title': [],
+        'Date': []
+    }
 
 #extract text from an xml node (SHALLOW, does not go beyond one layer)
 def getText(nodes):
@@ -114,98 +140,86 @@ def searchKeyword(keyword, num_papers):
     print("\n")
     return data, non_US
 
-if __name__ == '__main__':
-    os.makedirs('data', exist_ok=True)
+def getKeywords(filename):
+    try: 
+        with open(filename, 'r') as file:
+            raw_words = file.read();
+            keywords = raw_words.split('\n')
+        return keywords;
+    except:
+        return 0
     
-    data = {
-            'Name': [],
-            'Email': [],
-            'Address': [],
-            'Keyword': [],
-            'Title': [],
-            'Date': []
-        }
-
-    #for papers outside of the U.S.
-    non_US = {
-            'Name': [],
-            'Email': [],
-            'Address': [],
-            'Keyword': [],
-            'Title': [],
-            'Date': []
-        }
-    
-    keywords = [
-        "PCR+Master+Mix",
-        "Real-time+PCR+reagents",
-        "qPCR+master+mix",
-        "Taq+DNA+polymerase",
-        "PCR+amplification+kits",
-        "Multiplex+PCR",
-        "High-fidelity+PCR",
-        "Nucleic+Acid+Gel+Stains",
-        "SYBR+Green",
-        "Propidium+Iodide",
-        "GelRed",
-        "Nucleic+acid+visualization",
-        "Agarose+gel+electrophoresis",
-        "DNA/RNA+staining",
-        "Nucleic+Acid+Extractor",
-        "Automated+DNA/RNA+isolation",
-        "Magnetic+bead-based+extraction",
-        "Viral+RNA+extraction",
-        "Plasmid+DNA+isolation",
-        "Sample+preparation+technologies",
-        "Next+Generation+Sequencing+(NGS)",
-        "High-throughput+sequencing+methods",
-        "Illumina+sequencing+technology",
-        "Oxford+Nanopore+sequencing",
-        "Single-cell+sequencing",
-        "Whole-genome+sequencing+(WGS)",
-        "RNA-seq",
-        "Metagenomics",
-        "Gene+Synthesis",
-        "Synthetic+biology",
-        "Gene+assembly",
-        "Oligonucleotide+synthesis",
-        "CRISPR-Cas9+gene+editing",
-        "Synthetic+genomics",
-        "Protein+engineering",
-        "Antibody",
-        "Monoclonal+antibodies",
-        "Polyclonal+antibodies",
-        "Antibody+production+and+purification",
-        "Recombinant+antibodies",
-        "Therapeutic+antibodies",
-        "Antibody-drug+conjugates+(ADCs)",
-        "Immunoassays",
-        "Flow+cytometry+antibodies",
-        "Transfection+Reagent",
-        "Lipofection",
-        "Electroporation",
-        "Non-viral+gene+delivery+systems",
-        "siRNA+delivery",
-        "CRISPR-Cas9+delivery+systems",
-        "Lipid+nanoparticles",
-        "Calcium+phosphate+transfection",
-        "Viral+vector+production",
-        "Lentiviral+Packaging",
-        "Lentiviral+vectors",
-        "Viral+transduction",
-        "Gene+therapy+vectors",
-        "Stable+cell+line+generation",
-        "Viral+vector+purification"
-    ]
-    
+def searchPubmed(keywords, data, non_US, num_papers):
     for keyword in (keywords):
-        tempData, tempNon_US = searchKeyword(keyword, 100)
-        for key in data:
-            data[key] += tempData[key]
-            non_US[key] += tempNon_US[key]
-    
+            tempData, tempNon_US = searchKeyword(keyword, num_papers)
+            for key in data:
+                data[key] += tempData[key]
+                non_US[key] += tempNon_US[key]
+        
     df = pd.DataFrame(data)
     non_US_df = pd.DataFrame(non_US).drop_duplicates(subset=['Email'])
-    df.to_csv("./data/data.csv")
-    non_US_df.to_csv("./data/other_data.csv")
+    df.to_csv("./data/US_DATA.csv")
+    non_US_df.to_csv("./data/International_DATA.csv")
+
+if __name__ == '__main__':
+    quit = False
+    NCBI_API_KEY = "";
+    os.makedirs('data', exist_ok=True)
+
+    print("Welcome to the pubmed scraper!")
+    print("Before using this tool, you must do the following: ")
+    print("1. Register for a NCBI account at https://www.ncbi.nlm.nih.gov/")
+    print("2. Click on your email at the top right of the dashboard")
+    print("3. Click 'Account Settings'")
+    print("3. Scroll down and copy down your NCBI API key")
+    input("Press ENTER to continue: ")
+
+    print('\n')
+    print('\n')
+    print('\n')
+
+    if not os.path.isfile('./.env'):
+        NCBI_API_KEY = input("Please enter your NCBI API key: ")
+        with open('.env', 'w') as env:
+            env.write(f'NCBI_API_KEY={NCBI_API_KEY}')
+    else:
+        with open('.env', 'r+') as env:
+            NCBI_API_KEY = env.read()
+            modify_api_key = input(f"Enter 'Y' if you would like to modify your current API key '{NCBI_API_KEY}': ")
+            if modify_api_key.upper() == 'Y':
+                NCBI_API_KEY = input("Please enter your NCBI API key: ")
+                env.write(f'NCBI_API_KEY={NCBI_API_KEY}')
+
+    if not os.path.isfile('user.json'):
+        user['Email'] = input("Please enter your email: ")
+        with open('user.json', 'w') as user_file:
+            json.dump(user, user_file)
+    else:
+        with open('user.json', 'r+') as user_file:
+            user = json.load(user_file)
+            modify_email = input(f"Enter 'Y' if you would like to modify your current email '{user['Email']}': ")
+            if modify_email.upper() == 'Y':
+                user['Email'] = input("Please enter your email: ")
+                json.dump(user, user_file)
+
+
+    Entrez.api_key = os.getenv['NCBI_API_KEY']
+    Entrez.email = user['Email']
+
+    keywords = getKeywords('keywords.txt')
+    
+    if (keywords == 0):
+        print(f"Cannot open file 'keywords.txt'")
+    
+    print('\n')
+    print('\n')
+    print("Note: You can modify your keywords in 'keywords.txt'")
+    print('\n')
+    print('\n')
+
+    while (quit != False):
+        print("Commands: ")
+        user_input = input("What would you like to do: ")
+    
+        
                    
