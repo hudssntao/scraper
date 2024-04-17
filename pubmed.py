@@ -9,8 +9,6 @@ import argparse
 
 load_dotenv()
 
-# 9a8aeb7a1e66472d103a8664c333aff98808
-
 user = {
     'Email': '',
 }
@@ -147,7 +145,7 @@ def getKeywords(filename):
             keywords = raw_words.split('\n')
         return keywords;
     except:
-        return 0
+        return []
     
 def searchPubmed(keywords, data, non_US, num_papers):
     for keyword in (keywords):
@@ -159,7 +157,7 @@ def searchPubmed(keywords, data, non_US, num_papers):
     df = pd.DataFrame(data)
     non_US_df = pd.DataFrame(non_US).drop_duplicates(subset=['Email'])
     df.to_csv("./data/US_DATA.csv")
-    non_US_df.to_csv("./data/International_DATA.csv")
+    non_US_df.to_csv("./data/INTERNATIONAL_DATA.csv")
 
 if __name__ == '__main__':
     quit = False
@@ -173,9 +171,6 @@ if __name__ == '__main__':
     print("3. Click 'Account Settings'")
     print("3. Scroll down and copy down your NCBI API key")
     input("Press ENTER to continue: ")
-
-    print('\n')
-    print('\n')
     print('\n')
 
     if not os.path.isfile('./.env'):
@@ -203,23 +198,50 @@ if __name__ == '__main__':
                 json.dump(user, user_file)
 
 
-    Entrez.api_key = os.getenv['NCBI_API_KEY']
+    Entrez.api_key = os.getenv('NCBI_API_KEY')
     Entrez.email = user['Email']
 
     keywords = getKeywords('keywords.txt')
     
-    if (keywords == 0):
+    if (len(keywords) == 0):
         print(f"Cannot open file 'keywords.txt'")
-    
-    print('\n')
+        quit = True
+
     print('\n')
     print("Note: You can modify your keywords in 'keywords.txt'")
     print('\n')
-    print('\n')
 
-    while (quit != False):
-        print("Commands: ")
+
+    while (quit == False):
+        print("Commands (enter exactly as shown): quit, search, view_keywords, single_word_search")
         user_input = input("What would you like to do: ")
-    
+
+        if (user_input == 'quit'):
+            quit = True
+        elif (user_input == 'search'):
+            num_papers = input("How many papers would you like to search for each keyword?: ")
+            print("Searching for papers...\n")
+            searchPubmed(keywords, data, non_US, num_papers)
+            print("\nDone!\n")
+            print("Data has been saved in the 'data' folder.\n")
+        elif (user_input == 'view_keywords'):
+            print("Keywords: ")
+            for keyword in keywords:
+                print(keyword)
+            print('\n')
+        elif (user_input == 'single_word_search'):
+            keyword = input("Enter a keyword: ")
+            num_papers = input("How many papers would you like to search for?: ")
+            print("Searching for papers...\n")
+            searchPubmed([keyword], data, non_US, num_papers)
+            print("\nDone!\n")
+            print("Data has been saved in the 'data' folder.\n")
+        else:
+            print("Invalid command. Please try again.")
+            print('\n')
+            print('\n')
+            print('\n')
+        
+
         
                    
