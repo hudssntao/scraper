@@ -15,7 +15,8 @@ user = {
 
 
 data = {
-        'Name': [],
+        'First': [],
+        'Last': [],
         'Email': [],
         'Address': [],
         'Keyword': [],
@@ -25,7 +26,8 @@ data = {
 
 #for papers outside of the U.S.
 non_US = {
-        'Name': [],
+        'First': [],
+        'Last': [],
         'Email': [],
         'Address': [],
         'Keyword': [],
@@ -75,23 +77,25 @@ def searchKeyword(keyword, num_papers):
     pmid_list = record["IdList"]
 
     data = {
-            'Name': [],
-            'Email': [],
-            'Address': [],
-            'Keyword': [],
-            'Title': [],
-            'Date': []
-        }
+        'First': [],
+        'Last': [],
+        'Email': [],
+        'Address': [],
+        'Keyword': [],
+        'Title': [],
+        'Date': []
+    }
 
-    #for papers outside of the U.S.
+#for papers outside of the U.S.
     non_US = {
-            'Name': [],
-            'Email': [],
-            'Address': [],
-            'Keyword': [],
-            'Title': [],
-            'Date': []
-        }
+        'First': [],
+        'Last': [],
+        'Email': [],
+        'Address': [],
+        'Keyword': [],
+        'Title': [],
+        'Date': []
+    }
 
     # Fetch information for each article
     for pmid in tqdm.tqdm(pmid_list, leave=True, position=0):
@@ -115,17 +119,20 @@ def searchKeyword(keyword, num_papers):
                 affiliation_node = author.getElementsByTagName("Affiliation")
                 if affiliation_node and "@" in getText(affiliation_node[0].childNodes):
                     address, email = parseAffiliation(affiliation_node)
-                    author_with_email = getText(author.getElementsByTagName("ForeName")[0].childNodes) + " " + getText(author.getElementsByTagName("LastName")[0].childNodes) 
+                    firstName = getText(author.getElementsByTagName("ForeName")[0].childNodes)
+                    lastName = getText(author.getElementsByTagName("LastName")[0].childNodes) 
             
                     if any(x in address for x in ['United States', 'US', 'U.S.', 'United States of America', 'USA', 'U.S.A']):
-                        data['Name'].append(author_with_email)
+                        data['First'].append(firstName)
+                        data['Last'].append(lastName)
                         data['Email'].append(email)
                         data['Address'].append(address)
                         data['Keyword'].append(keyword)
                         data['Title'].append(title)
                         data['Date'].append(date)
                     else:
-                        non_US['Name'].append(author_with_email)
+                        non_US['First'].append(firstName)
+                        non_US['Last'].append(lastName)
                         non_US['Email'].append(email)
                         non_US['Address'].append(address)
                         non_US['Keyword'].append(keyword)
@@ -213,23 +220,53 @@ if __name__ == '__main__':
 
 
     while (quit == False):
-        print("Commands (enter exactly as shown): quit, search, view_keywords, single_word_search")
+        print("Commands (enter exactly as shown):\nq: Exit program\ns: Search using keywords.txt\nv: View keywords.txt\nm: Modify keywords.txt\nss: Search with a single keyword\n")
         user_input = input("What would you like to do: ")
 
-        if (user_input == 'quit'):
+        if (user_input == 'q'):
             quit = True
-        elif (user_input == 'search'):
+        elif (user_input == 's'):
             num_papers = input("How many papers would you like to search for each keyword?: ")
             print("Searching for papers...\n")
             searchPubmed(keywords, data, non_US, num_papers)
             print("\nDone!\n")
             print("Data has been saved in the 'data' folder.\n")
-        elif (user_input == 'view_keywords'):
+        elif (user_input == 'v'):
             print("Keywords: ")
             for keyword in keywords:
                 print(keyword)
             print('\n')
-        elif (user_input == 'single_word_search'):
+        elif (user_input == 'm'):
+            while True:
+                print("You are now editing keywords.txt -- Commands (enter exactly as shown):\na: Add a keyword\nd: Delete a keyword\nq: Quit\n")
+                user_input = input("What would you like to do: ")
+                if (user_input == 'a'):
+                    keyword = input("Enter a keyword: ")
+                    keywords.append(keyword)
+                    with open('keywords.txt', 'w') as file:
+                        for keyword in keywords:
+                            file.write(keyword + '\n')
+                    print(f"Keyword '{keyword}' has been added.")
+                    print('\n')
+                elif (user_input == 'd'):
+                    deletedKeyword = input("Enter a keyword: ")
+                    if keyword in keywords:
+                        keywords.remove(deletedKeyword)
+                        with open('keywords.txt', 'w') as file:
+                            for keyword in keywords:
+                                file.write(keyword + '\n')
+                        print(f"Keyword '{deletedKeyword}' has been deleted.")
+                        print('\n')
+                    else:
+                        print(f"Keyword '{deletedKeyword}' does not exist.")
+                        print('\n')
+                elif (user_input == 'q'):
+                    print('\n')
+                    break
+                else:
+                    print("Invalid command. Please try again.")
+                    print('\n')
+        elif (user_input == 'ss'):
             keyword = input("Enter a keyword: ")
             num_papers = input("How many papers would you like to search for?: ")
             print("Searching for papers...\n")
@@ -238,8 +275,6 @@ if __name__ == '__main__':
             print("Data has been saved in the 'data' folder.\n")
         else:
             print("Invalid command. Please try again.")
-            print('\n')
-            print('\n')
             print('\n')
         
 
